@@ -1,0 +1,184 @@
+Now I want to not just return the json parsed structure but also validate it and return the errrors
+
+
+I want following format:
+
+Endpoint: /parse-edi
+Request Body  - multimedia .edi/.txt/.dat/.x12 file
+
+Response:
+JSON: {
+{file parsed json...},
+{component descriptions...},
+{errors...}
+}
+
+Here the parsed json will be same as our original file just returned as json
+
+Component description will be the hover text and full forms of segments or codes in the file Ex. ISA - Interchange Control Header, GS - Functional Group Header, PAYERID - Interchange Sender ID, etc all components will be listed in key value pairs or a list of pairs where each pair has {component, description}
+
+Errors will contain list of all errors in the file which are found during parsing and validation - all errors will have a code attached to them to uniquely identify them - code will be like 2R3C which means 2nd Row 3rd Column (2nd line error at 3rd character) and description of that error
+
+Later this error will be used to address the exact error and fix it at different endpoint
+
+
+SO I want you to modify this parse-edi endpoint to support these functionalities
+
+I was thinking about having a distributed/divided architecture at python fast api backend, so parser will reside in different file, validator will reside in different file and those will be called by our api.py where our main code of api end point fastapi is written
+
+Here is the code, modify it to support the features
+"""
+import json
+
+def parse_edi(filepath: str) -> str:
+    """
+    Basic EDI parser supporting 835, 837, 834.
+    Input: filepath to EDI file
+    Output: JSON string
+    """
+
+    with open(filepath, "r") as f:
+        edi_string = f.read().strip()
+
+    if not edi_string.startswith("ISA"):
+        raise ValueError("Invalid EDI file: Missing ISA segment")
+
+    # Detect delimiters from ISA
+    element_sep = edi_string[3]
+    segment_term = "~"
+    component_sep = ":"
+
+    # Some files define component separator in ISA16
+    isa_segment = edi_string.split(segment_term)[0]
+    isa_elements = isa_segment.split(element_sep)
+
+    if len(isa_elements) >= 16:
+        component_sep = isa_elements[16][-1]
+
+    segments_raw = edi_string.split(segment_term)
+
+    segments = []
+
+    for seg in segments_raw:
+        seg = seg.strip()
+        if not seg:
+            continue
+
+        elements = seg.split(element_sep)
+
+        segment_data = {
+            "segment_id": elements[0],
+            "elements": elements[1:]
+        }
+
+        segments.append(segment_data)
+
+    # Extract metadata
+    metadata = {
+        "sender_id": None,
+        "receiver_id": None,
+        "transaction_type": None
+    }
+
+    for seg in segments:
+
+        if seg["segment_id"] == "ISA":
+            metadata["sender_id"] = seg["elements"][5] if len(seg["elements"]) > 5 else None
+            metadata["receiver_id"] = seg["elements"][7] if len(seg["elements"]) > 7 else None
+
+        if seg["segment_id"] == "ST":
+            st_code = seg["elements"][0]
+
+            if st_code == "837":
+                metadata["transaction_type"] = "837 Healthcare Claim"
+            elif st_code == "835":
+                metadata["transaction_type"] = "835 Payment"
+            elif st_code == "834":
+                metadata["transaction_type"] = "834 Enrollment"
+            else:
+                metadata["transaction_type"] = f"Unknown ({st_code})"
+
+    parsed = {
+        "metadata": metadata,
+        "segment_count": len(segments),
+        "segments": segments
+    }
+
+    return json.dumps(parsed, indent=2)
+
+# Parse EDI file
+result = parse_edi("834/834-all-fields.edi")
+
+print(result)"""
+
+parser.py
+"""
+
+def parse_edi(edi_string: str):
+
+    edi_string = edi_string.strip()
+
+    if not edi_string.startswith("ISA"):
+        raise ValueError("Invalid EDI file: Missing ISA segment")
+
+    # Detect delimiters from ISA
+    element_sep = edi_string[3]
+    segment_term = "~"
+    component_sep = ":"
+
+    isa_segment = edi_string.split(segment_term)[0]
+    isa_elements = isa_segment.split(element_sep)
+
+    if len(isa_elements) >= 16:
+        component_sep = isa_elements[16][-1]
+
+    segments_raw = edi_string.split(segment_term)
+
+    segments = []
+
+    for seg in segments_raw:
+        seg = seg.strip()
+        if not seg:
+            continue
+
+        elements = seg.split(element_sep)
+
+        segment_data = {
+            "segment_id": elements[0],
+            "elements": elements[1:]
+        }
+
+        segments.append(segment_data)
+
+    metadata = {
+        "sender_id": None,
+        "receiver_id": None,
+        "transaction_type": None
+    }
+
+    for seg in segments:
+
+        if seg["segment_id"] == "ISA":
+            metadata["sender_id"] = seg["elements"][5] if len(seg["elements"]) > 5 else None
+            metadata["receiver_id"] = seg["elements"][7] if len(seg["elements"]) > 7 else None
+
+        if seg["segment_id"] == "ST":
+            st_code = seg["elements"][0]
+
+            if st_code == "837":
+                metadata["transaction_type"] = "837 Healthcare Claim"
+            elif st_code == "835":
+                metadata["transaction_type"] = "835 Payment"
+            elif st_code == "834":
+                metadata["transaction_type"] = "834 Enrollment"
+            else:
+                metadata["transaction_type"] = f"Unknown ({st_code})"
+
+    parsed = {
+        "metadata": metadata,
+        "segment_count": len(segments),
+        "segments": segments
+    }
+
+    return parsed
+"""
