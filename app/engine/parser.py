@@ -1,70 +1,40 @@
-def parse_edi(edi_string: str):
-
-    edi_string = edi_string.strip()
-
-    if not edi_string.startswith("ISA"):
-        raise ValueError("Invalid EDI file: Missing ISA segment")
-
-    element_sep = edi_string[3]
-    segment_term = "~"
-
-    segments_raw = edi_string.split(segment_term)
+def parse_edi(edi_string):
 
     segments = []
+    row = 1
 
-    for row_index, seg in enumerate(segments_raw, start=1):
+    for raw in edi_string.strip().split("~"):
 
-        seg = seg.strip()
-
-        if not seg:
+        raw = raw.strip()
+        if not raw:
             continue
 
-        elements = seg.split(element_sep)
+        parts = raw.split("*")
 
-        segment_data = {
-            "row": row_index,
-            "segment_id": elements[0],
-            "elements": [
-                {
-                    "column": i + 1,
-                    "value": el
-                }
-                for i, el in enumerate(elements[1:])
-            ]
-        }
+        seg_id = parts[0]
 
-        segments.append(segment_data)
+        elements = []
 
-    metadata = {
-        "sender_id": None,
-        "receiver_id": None,
-        "transaction_type": None
-    }
+        for i, val in enumerate(parts[1:], start=1):
+
+            elements.append({
+                "column": i,
+                "value": val
+            })
+
+        segments.append({
+            "segment_id": seg_id,
+            "row": row,
+            "elements": elements
+        })
+
+        row += 1
+
+    metadata = {}
 
     for seg in segments:
-
-        if seg["segment_id"] == "ISA":
-
-            elements = [e["value"] for e in seg["elements"]]
-
-            if len(elements) > 5:
-                metadata["sender_id"] = elements[5]
-
-            if len(elements) > 7:
-                metadata["receiver_id"] = elements[7]
-
         if seg["segment_id"] == "ST":
-
-            st_code = seg["elements"][0]["value"]
-
-            if st_code == "837":
-                metadata["transaction_type"] = "837"
-            elif st_code == "835":
-                metadata["transaction_type"] = "835"
-            elif st_code == "834":
-                metadata["transaction_type"] = "834"
-            else:
-                metadata["transaction_type"] = f"Unknown ({st_code})"
+            metadata["transaction_type"] = seg["elements"][0]["value"]
 
     return {
         "metadata": metadata,

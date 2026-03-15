@@ -1,14 +1,24 @@
 import json
+from pathlib import Path
 
-def load_rules(transaction_type):
+BASE = Path("rules")
 
-    with open("rules/base.json") as f:
-        base_rules = json.load(f)
+def load_json(path):
+    with open(path) as f:
+        return json.load(f)
 
-    try:
-        with open(f"rules/{transaction_type}.json") as f:
-            tx_rules = json.load(f)
-    except:
-        tx_rules = {}
+def load_rules(transaction):
 
-    return {**base_rules, **tx_rules}
+    rules = {}
+
+    rules["types"] = load_json(BASE / "types.json")
+    rules["values"] = load_json(BASE / "values.json")
+    rules["errors"] = load_json(BASE / "errors.json")
+
+    tx_dir = BASE / transaction
+
+    rules["segments"] = load_json(tx_dir / "segments.json")["segments"]
+    rules["loops"] = load_json(tx_dir / "loops.json")["loops"]
+    rules["structure"] = load_json(tx_dir / "structure.json")["structure"]
+
+    return rules

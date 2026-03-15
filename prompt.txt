@@ -1,184 +1,87 @@
-Now I want to not just return the json parsed structure but also validate it and return the errrors
-
-
-I want following format:
-
-Endpoint: /parse-edi
-Request Body  - multimedia .edi/.txt/.dat/.x12 file
-
-Response:
-JSON: {
-{file parsed json...},
-{component descriptions...},
-{errors...}
+I am getting the following error while giving edi file as input
+{
+  "detail": "unhashable type: 'dict'"
 }
 
-Here the parsed json will be same as our original file just returned as json
-
-Component description will be the hover text and full forms of segments or codes in the file Ex. ISA - Interchange Control Header, GS - Functional Group Header, PAYERID - Interchange Sender ID, etc all components will be listed in key value pairs or a list of pairs where each pair has {component, description}
-
-Errors will contain list of all errors in the file which are found during parsing and validation - all errors will have a code attached to them to uniquely identify them - code will be like 2R3C which means 2nd Row 3rd Column (2nd line error at 3rd character) and description of that error
-
-Later this error will be used to address the exact error and fix it at different endpoint
-
-
-SO I want you to modify this parse-edi endpoint to support these functionalities
-
-I was thinking about having a distributed/divided architecture at python fast api backend, so parser will reside in different file, validator will reside in different file and those will be called by our api.py where our main code of api end point fastapi is written
-
-Here is the code, modify it to support the features
-"""
+build_hierarchy.py
+```
 import json
+from pathlib import Path
 
-def parse_edi(filepath: str) -> str:
-    """
-    Basic EDI parser supporting 835, 837, 834.
-    Input: filepath to EDI file
-    Output: JSON string
-    """
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent.parent
+RULES_DIR = PROJECT_ROOT / "rules"
 
-    with open(filepath, "r") as f:
-        edi_string = f.read().strip()
+LOOP_RULES_PATH = RULES_DIR / "loop_rules.json"
 
-    if not edi_string.startswith("ISA"):
-        raise ValueError("Invalid EDI file: Missing ISA segment")
+with open(LOOP_RULES_PATH) as f:
+    LOOP_START = json.load(f)
+    
+def build_hierarchy(segments, transaction_type):
 
-    # Detect delimiters from ISA
-    element_sep = edi_string[3]
-    segment_term = "~"
-    component_sep = ":"
+    loop_rules = LOOP_START.get(transaction_type, {})
 
-    # Some files define component separator in ISA16
-    isa_segment = edi_string.split(segment_term)[0]
-    isa_elements = isa_segment.split(element_sep)
-
-    if len(isa_elements) >= 16:
-        component_sep = isa_elements[16][-1]
-
-    segments_raw = edi_string.split(segment_term)
-
-    segments = []
-
-    for seg in segments_raw:
-        seg = seg.strip()
-        if not seg:
-            continue
-
-        elements = seg.split(element_sep)
-
-        segment_data = {
-            "segment_id": elements[0],
-            "elements": elements[1:]
-        }
-
-        segments.append(segment_data)
-
-    # Extract metadata
-    metadata = {
-        "sender_id": None,
-        "receiver_id": None,
-        "transaction_type": None
+    root = {
+        "loop_id": "ROOT",
+        "children": []
     }
+
+    current_loop = root
 
     for seg in segments:
 
-        if seg["segment_id"] == "ISA":
-            metadata["sender_id"] = seg["elements"][5] if len(seg["elements"]) > 5 else None
-            metadata["receiver_id"] = seg["elements"][7] if len(seg["elements"]) > 7 else None
+        seg_id = seg["segment_id"]
 
-        if seg["segment_id"] == "ST":
-            st_code = seg["elements"][0]
+        loop_name = None
 
-            if st_code == "837":
-                metadata["transaction_type"] = "837 Healthcare Claim"
-            elif st_code == "835":
-                metadata["transaction_type"] = "835 Payment"
-            elif st_code == "834":
-                metadata["transaction_type"] = "834 Enrollment"
-            else:
-                metadata["transaction_type"] = f"Unknown ({st_code})"
+        for loop, start_seg in loop_rules.items():
+            if start_seg == seg_id:
+                loop_name = loop
+                break
 
-    parsed = {
-        "metadata": metadata,
-        "segment_count": len(segments),
-        "segments": segments
+        if loop_name:
+
+            new_loop = {
+                "loop_id": loop_name,
+                "segments": [],
+                "children": []
+            }
+
+            root["children"].append(new_loop)
+            current_loop = new_loop
+
+        if "segments" not in current_loop:
+            current_loop["segments"] = []
+
+        current_loop["segments"].append(seg)
+
+    return root
+```
+
+edi_service.py
+```
+from app.engine.build_hierarchy import build_hierarchy
+from app.engine.parser import parse_edi
+from app.engine.validator import validate
+from app.engine.rules_loader import load_rules
+
+
+def process_edi_file(edi_string):
+
+    parsed = parse_edi(edi_string)
+
+    transaction_type = parsed["metadata"]["transaction_type"]
+
+    rules = load_rules(transaction_type)
+
+    errors = validate(parsed, rules)
+
+    print(build_hierarchy(parsed["segments"], rules))
+
+    return {
+        "metadata": parsed["metadata"],
+        "segments": parsed["segments"],
+        "component_descriptions": {},
+        "errors": errors
     }
-
-    return json.dumps(parsed, indent=2)
-
-# Parse EDI file
-result = parse_edi("834/834-all-fields.edi")
-
-print(result)"""
-
-parser.py
-"""
-
-def parse_edi(edi_string: str):
-
-    edi_string = edi_string.strip()
-
-    if not edi_string.startswith("ISA"):
-        raise ValueError("Invalid EDI file: Missing ISA segment")
-
-    # Detect delimiters from ISA
-    element_sep = edi_string[3]
-    segment_term = "~"
-    component_sep = ":"
-
-    isa_segment = edi_string.split(segment_term)[0]
-    isa_elements = isa_segment.split(element_sep)
-
-    if len(isa_elements) >= 16:
-        component_sep = isa_elements[16][-1]
-
-    segments_raw = edi_string.split(segment_term)
-
-    segments = []
-
-    for seg in segments_raw:
-        seg = seg.strip()
-        if not seg:
-            continue
-
-        elements = seg.split(element_sep)
-
-        segment_data = {
-            "segment_id": elements[0],
-            "elements": elements[1:]
-        }
-
-        segments.append(segment_data)
-
-    metadata = {
-        "sender_id": None,
-        "receiver_id": None,
-        "transaction_type": None
-    }
-
-    for seg in segments:
-
-        if seg["segment_id"] == "ISA":
-            metadata["sender_id"] = seg["elements"][5] if len(seg["elements"]) > 5 else None
-            metadata["receiver_id"] = seg["elements"][7] if len(seg["elements"]) > 7 else None
-
-        if seg["segment_id"] == "ST":
-            st_code = seg["elements"][0]
-
-            if st_code == "837":
-                metadata["transaction_type"] = "837 Healthcare Claim"
-            elif st_code == "835":
-                metadata["transaction_type"] = "835 Payment"
-            elif st_code == "834":
-                metadata["transaction_type"] = "834 Enrollment"
-            else:
-                metadata["transaction_type"] = f"Unknown ({st_code})"
-
-    parsed = {
-        "metadata": metadata,
-        "segment_count": len(segments),
-        "segments": segments
-    }
-
-    return parsed
-"""
+```

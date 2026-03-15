@@ -1,0 +1,186 @@
+{
+    "segments": {
+        "ISA": {
+            "name": "Interchange Control Header",
+            "elements": {
+                "ISA01": {
+                    "type": "ID2",
+                    "value_set": "AUTHIQ"
+                },
+                "ISA02": {
+                    "dependency": {
+                        "element": "ISA01",
+                        "rules": {
+                            "00": {
+                                "type": "SPACE10"
+                            },
+                            "03": {
+                                "type": "AN10"
+                            }
+                        }
+                    }
+                },
+                "ISA03": {
+                    "type": "ID2",
+                    "value_set": "SECIQ"
+                },
+                "ISA04": {
+                    "dependency": {
+                        "element": "ISA03",
+                        "rules": {
+                            "00": {
+                                "type": "SPACE10"
+                            },
+                            "01": {
+                                "type": "AN10"
+                            }
+                        }
+                    }
+                },
+                "ISA05": {
+                    "type": "ID2",
+                    "value_set": "IIDQ"
+                },
+                "ISA06": {
+                    "type": "ANS15"
+                },
+                "ISA07": {
+                    "type": "ID2",
+                    "value_set": "IIDQ"
+                },
+                "ISA08": {
+                    "type": "ANS15"
+                },
+                "ISA09": {
+                    "type": "DT6"
+                },
+                "ISA10": {
+                    "type": "TM4"
+                },
+                "ISA11": {
+                    "type": "CHAR"
+                },
+                "ISA12": {
+                    "required_value": "00501"
+                },
+                "ISA13": {
+                    "type": "N0_9"
+                },
+                "ISA14": {
+                    "value_set": "ACKR"
+                },
+                "ISA15": {
+                    "value_set": "UI"
+                },
+                "ISA16": {
+                    "type": "CHAR"
+                }
+            }
+        },
+        "GS": {
+            "name": "Functional Group Header",
+            "elements": {
+                "GS01": {
+                    "type": "ID2"
+                },
+                "GS02": {
+                    "type": "AN1_80"
+                },
+                "GS03": {
+                    "type": "AN1_80"
+                },
+                "GS04": {
+                    "type": "DT8"
+                },
+                "GS05": {
+                    "type": "TM4"
+                },
+                "GS06": {
+                    "type": "N0_9"
+                },
+                "GS07": {
+                    "required_value": "X"
+                },
+                "GS08": {
+                    "required_value": "005010X220A1"
+                }
+            }
+        },
+        "ST": {
+            "name": "Transaction Header",
+            "elements": {
+                "ST01": {
+                    "required_value": "834"
+                },
+                "ST02": {
+                    "type": "AN1_80"
+                },
+                "ST03": {
+                    "required_value": "005010X220A1"
+                }
+            }
+        },
+        "BGN": {
+            "name": "Beginning Segment",
+            "elements": {
+                "BGN01": {
+                    "type": "ID2"
+                },
+                "BGN02": {
+                    "type": "AN1_80"
+                },
+                "BGN03": {
+                    "type": "DT8"
+                },
+                "BGN04": {
+                    "type": "TM4"
+                }
+            }
+        },
+        "REF": {
+            "name": "Reference Identification",
+            "elements": {
+                "REF01": {
+                    "type": "ID2"
+                },
+                "REF02": {
+                    "type": "AN1_80"
+                }
+            }
+        },
+        "NM1": {
+            "name": "Name",
+            "elements": {
+                "NM101": {
+                    "type": "ID2"
+                },
+                "NM102": {
+                    "type": "N1"
+                },
+                "NM103": {
+                    "type": "AN1_80"
+                },
+                "NM104": {
+                    "type": "AN1_80"
+                },
+                "NM108": {
+                    "type": "ID2"
+                },
+                "NM109": {
+                    "type": "AN1_80"
+                }
+            }
+        },
+        "HD": {
+            "name": "Health Coverage",
+            "elements": {
+                "HD01": {
+                    "type": "ID3"
+                },
+                "HD03": {
+                    "type": "ID3"
+                }
+            }
+        }
+    }
+}

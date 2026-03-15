@@ -1,0 +1,37 @@
+{
+    "possible_values": {
+        "IIDQ": {
+            "ZZ": "Mutually Defined",
+            "01": "DUNS",
+            "02": "SCAC",
+            "03": "FMC",
+            "04": "IATA",
+            "08": "UCC EDI Communication ID",
+            "09": "X.121",
+            "12": "Phone Number",
+            "14": "DUNS + suffix",
+            "20": "Health Industry Number (HIN)",
+            "27": "Carrier ID",
+            "28": "Fiscal Intermediary",
+            "29": "Medicare Provider",
+            "30": "US Federal Tax ID",
+            "33": "NAIC"
+        },
+        "ACKR": {
+            "0": "No TA1 Acknowledgement",
+            "1": "TA1 Acknowledgement Required"
+        },
+        "AUTHIQ": {
+            "00": "No Authorization Information Present",
+            "03": "Additional Authorization Information Present"
+        },
+        "SECIQ": {
+            "00": "No Security Information Present",
+            "01": "Password Present"
+        },
+        "UI": {
+            "T": "Test Data",
+            "P": "Production Data"
+        }
+    }
+}

@@ -1,0 +1,70 @@
+{
+    "loops": {
+        "1000A": {
+            "name": "Sponsor",
+            "start_segment": "N1",
+            "qualifier": {
+                "element": "N101",
+                "value": "P5"
+            },
+            "max_repeat": 1,
+            "segments": [
+                "N1",
+                "N2",
+                "N3",
+                "N4",
+                "PER"
+            ]
+        },
+        "1000B": {
+            "name": "Payer",
+            "start_segment": "N1",
+            "qualifier": {
+                "element": "N101",
+                "value": "IN"
+            },
+            "max_repeat": 1,
+            "segments": [
+                "N1",
+                "N3",
+                "N4"
+            ]
+        },
+        "2000": {
+            "name": "Member",
+            "start_segment": "INS",
+            "max_repeat": 99999,
+            "segments": [
+                "INS",
+                "REF",
+                "DTP"
+            ]
+        },
+        "2100A": {
+            "name": "Member Name",
+            "start_segment": "NM1",
+            "qualifier": {
+                "element": "NM101",
+                "value": "IL"
+            },
+            "segments": [
+                "NM1",
+                "PER",
+                "N3",
+                "N4",
+                "DMG"
+            ]
+        },
+        "2300": {
+            "name": "Coverage",
+            "start_segment": "HD",
+            "max_repeat": 99,
+            "segments": [
+                "HD",
+                "DTP",
+                "AMT",
+                "REF"
+            ]
+        }
+    }
+}

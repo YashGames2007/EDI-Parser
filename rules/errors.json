@@ -1,0 +1,22 @@
+{
+    "SEG_MISSING": {
+        "description": "Required segment is missing",
+        "severity": "error"
+    },
+    "SEG_MIN_ELEMENTS": {
+        "description": "Segment has fewer elements than allowed",
+        "severity": "error"
+    },
+    "SEG_MAX_ELEMENTS": {
+        "description": "Segment has more elements than allowed",
+        "severity": "error"
+    },
+    "INVALID_FORMAT": {
+        "description": "Element format invalid",
+        "severity": "error"
+    },
+    "INVALID_VALUE": {
+        "description": "Element value not allowed",
+        "severity": "error"
+    }
+}

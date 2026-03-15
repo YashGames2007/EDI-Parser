@@ -1,10 +1,19 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import edi
 
 app = FastAPI(
     title="EDI Parser API",
     version="1.0.0"
 )
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["10.20.24.189:8080"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"]
+# )
 
 app.include_router(edi.router)
 

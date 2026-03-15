@@ -1,7 +1,7 @@
+from app.engine.build_hierarchy import build_hierarchy
 from app.engine.parser import parse_edi
 from app.engine.validator import validate
 from app.engine.rules_loader import load_rules
-# from util.desc import COMPONENT_DESCRIPTIONS
 
 
 def process_edi_file(edi_string):
@@ -14,9 +14,11 @@ def process_edi_file(edi_string):
 
     errors = validate(parsed, rules)
 
+    # print(build_hierarchy(parsed["segments"], rules))
+
     return {
         "metadata": parsed["metadata"],
-        "parsed_data": parsed["segments"],
-        "component_descriptions": "COMPONENT_DESCRIPTIONS TO BE ADDED HERE",
+        "segments": parsed["segments"],
+        "component_descriptions": {},
         "errors": errors
     }

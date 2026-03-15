@@ -1,29 +1,38 @@
 import re
 
-def validate(parsed_data, rules):
+
+def add_error(errors, code, row=None, column=None, rules=None):
+
+    desc = rules["errors"].get(code, {}).get("description", "Unknown error")
+
+    errors.append({
+        "code": code,
+        "description": desc,
+        "row": row,
+        "column": column
+    })
+
+
+def validate(parsed, rules):
 
     errors = []
 
-    segments = parsed_data["segments"]
+    segments = parsed["segments"]
 
     segment_ids = [s["segment_id"] for s in segments]
 
-    # -------------------------
+    # ----------------------
     # Required Segment Check
-    # -------------------------
+    # ----------------------
 
-    for seg in rules.get("required_segments", []):
+    for seg, rule in rules["segments"].items():
 
-        if seg not in segment_ids:
+        if rule.get("required") and seg not in segment_ids:
+            add_error(errors, "SEG_MISSING", rules=rules)
 
-            errors.append({
-                "code": "SEG_MISSING",
-                "description": f"Missing required segment {seg}"
-            })
-
-    # -------------------------
-    # Segment Structure Rules
-    # -------------------------
+    # ----------------------
+    # Segment Validation
+    # ----------------------
 
     for seg in segments:
 
@@ -35,63 +44,52 @@ def validate(parsed_data, rules):
 
         seg_rule = rules["segments"][seg_id]
 
-        element_count = len(seg["elements"])
+        elements = seg["elements"]
 
-        if "min_elements" in seg_rule and element_count < seg_rule["min_elements"]:
+        if "min_elements" in seg_rule and len(elements) < seg_rule["min_elements"]:
+            add_error(errors, "SEG_MIN_ELEMENTS", row=row, rules=rules)
 
-            errors.append({
-                "code": "SEG_MIN_ELEMENTS",
-                "description": f"{seg_id} has too few elements",
-                "row": row
-            })
+        if "max_elements" in seg_rule and len(elements) > seg_rule["max_elements"]:
+            add_error(errors, "SEG_MAX_ELEMENTS", row=row, rules=rules)
 
-        if "max_elements" in seg_rule and element_count > seg_rule["max_elements"]:
+        # ----------------------
+        # Element Validation
+        # ----------------------
 
-            errors.append({
-                "code": "SEG_MAX_ELEMENTS",
-                "description": f"{seg_id} has too many elements",
-                "row": row
-            })
+        for el in elements:
 
-    # -------------------------
-    # Element Validation
-    # -------------------------
-
-    for seg in segments:
-
-        seg_id = seg["segment_id"]
-        row = seg["row"]
-
-        for el in seg["elements"]:
-
-            col = el["column"]
+            column = el["column"]
             value = el["value"]
 
-            key = f"{seg_id}{col:02}"
+            element_key = f"{seg_id}{column:02}"
 
-            rule = rules.get("element_rules", {}).get(key)
+            element_rule = seg_rule.get("elements", {}).get(element_key)
 
-            if not rule:
+            if not element_rule:
                 continue
 
-            if rule["type"] == "date":
+            # Type validation
+            if "type" in element_rule:
 
-                if not re.match(r"^\d{8}$", value):
+                type_rule = rules["types"][element_rule["type"]]
 
-                    errors.append({
-                        "code": "INVALID_DATE",
-                        "description": f"{key} must be CCYYMMDD",
-                        "row": row
-                    })
+                if not re.match(type_rule["regex"], value):
+                    add_error(errors, "INVALID_FORMAT", row, column, rules)
 
-            if rule["type"] == "npi":
+            # Value set validation
+            if "value_set" in element_rule:
 
-                if not re.match(r"^\d{10}$", value):
+                allowed = rules["values"]["possible_values"].get(
+                    element_rule["value_set"], {}
+                )
 
-                    errors.append({
-                        "code": "INVALID_NPI",
-                        "description": f"{key} must be 10 digit NPI",
-                        "row": row
-                    })
+                if value not in allowed:
+                    add_error(errors, "INVALID_VALUE", row, column, rules)
+
+            # Required value validation
+            if "required_value" in element_rule:
+
+                if value != element_rule["required_value"]:
+                    add_error(errors, "INVALID_VALUE", row, column, rules)
 
     return errors

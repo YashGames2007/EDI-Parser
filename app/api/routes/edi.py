@@ -12,7 +12,7 @@ async def parse_edi(file: UploadFile = File(...)):
         edi_string = contents.decode("utf-8")
 
         result = process_edi_file(edi_string)
-
+        print(result)
         return result
 
     except Exception as e:
