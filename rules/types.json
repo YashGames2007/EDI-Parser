@@ -1,44 +1,56 @@
 {
     "N1": {
-        "regex": "^[1-2]{1}$"
+        "regex": "^[1-2]{1}$",
+        "description": "Entity Identifier Code (1=Person, 2=Non-Person Entity)"
     },
     "ID2": {
-        "regex": "^[A-Z0-9]{2}$"
+        "regex": "^[A-Z0-9]{2}$",
+        "description": "Identifier Code (2 characters - Alphanumeric)"
     },
     "ID3": {
-        "regex": "^[A-Z0-9]{3}$"
+        "regex": "^[A-Z0-9]{3}$",
+        "description": "Identifier Code (3 characters - Alphanumeric)"
     },
     "AN1_80": {
-        "regex": "^[A-Za-z0-9 .\\-]{1,80}$"
+        "regex": "^[A-Za-z0-9 .\\-]{1,80}$",
+        "description": "Alpha-Numeric String (1-80 characters)"
     },
     "ANS15": {
-        "regex": "^.{1,15}$"
+        "regex": "^.{1,15}$",
+        "description": "Alpha-Numeric String (1-15 characters) [With Space Padding]"
     },
     "N0_9": {
-        "regex": "^[0-9]{1,9}$"
+        "regex": "^[0-9]{1,9}$",
+        "description": "Numeric String (1-9 characters)"
     },
     "DT8": {
         "regex": "^[0-9]{8}$",
         "format": "CCYYMMDD",
-        "type": "date"
+        "type": "date",
+        "description": "Date (8 digits - CCYYMMDD)"
     },
     "DT6": {
         "regex": "^[0-9]{6}$",
         "format": "YYMMDD",
-        "type": "date"
+        "type": "date",
+        "description": "Date (6 digits - YYMMDD)"
     },
     "TM4": {
         "regex": "^[0-9]{4}$",
         "format": "HHMM",
-        "type": "time"
+        "type": "time",
+        "description": "Time (4 digits - HHMM)"
     },
     "CHAR": {
-        "regex": "^.$"
+        "regex": "^.$",
+        "description": "Character (1 digit)"
     },
     "SPACE10": {
-        "regex": "^\\s{10}$"
+        "regex": "^\\s{10}$",
+        "description": "Space Characters (must be exactly 10 spaces)"
     },
     "AN10": {
-        "regex": "^.{1,10}$"
+        "regex": "^.{1,10}$",
+        "description": "Alpha-Numeric String (1-10 characters)"
     }
 }

@@ -1,40 +1,51 @@
-def build_hierarchy(segments, transaction_type):
+# import json
+# from pathlib import Path
 
-    loop_rules = LOOP_START.get(transaction_type, {})
+# BASE_DIR = Path(__file__).resolve().parent
+# PROJECT_ROOT = BASE_DIR.parent.parent
+# RULES_DIR = PROJECT_ROOT / "rules"
 
-    root = {
-        "loop_id": "ROOT",
-        "children": []
-    }
+# LOOP_RULES_PATH = RULES_DIR / "loop_rules.json"
 
-    stack = [root]
+# with open(LOOP_RULES_PATH) as f:
+#     LOOP_START = json.load(f)
+    
+# def build_hierarchy(segments, transaction_type):
 
-    for seg in segments:
+#     loop_rules = LOOP_START.get(transaction_type, {})
 
-        seg_id = seg["segment_id"]
+#     root = {
+#         "loop_id": "ROOT",
+#         "children": []
+#     }
 
-        loop_name = None
-        for loop, start_seg in loop_rules.items():
-            if start_seg == seg_id:
-                loop_name = loop
-                break
+#     current_loop = root
 
-        if loop_name:
+#     for seg in segments:
 
-            new_loop = {
-                "loop_id": loop_name,
-                "segments": [],
-                "children": []
-            }
+#         seg_id = seg["segment_id"]
 
-            stack[-1]["children"].append(new_loop)
-            stack.append(new_loop)
+#         loop_name = None
 
-        current_loop = stack[-1]
+#         for loop, start_seg in loop_rules.items():
+#             if start_seg == seg_id:
+#                 loop_name = loop
+#                 break
 
-        if "segments" not in current_loop:
-            current_loop["segments"] = []
+#         if loop_name:
 
-        current_loop["segments"].append(seg)
+#             new_loop = {
+#                 "loop_id": loop_name,
+#                 "segments": [],
+#                 "children": []
+#             }
 
-    return root
+#             root["children"].append(new_loop)
+#             current_loop = new_loop
+
+#         if "segments" not in current_loop:
+#             current_loop["segments"] = []
+
+#         current_loop["segments"].append(seg)
+
+#     return root
