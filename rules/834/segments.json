@@ -3,6 +3,7 @@
         "ISA": {
             "name": "Interchange Control Header",
             "required": true,
+            "row": 1,
             "elements": {
                 "ISA01": {
                     "type": "ID2",
@@ -81,6 +82,7 @@
         "GS": {
             "name": "Functional Group Header",
             "required": true,
+            "row": 2,
             "elements": {
                 "GS01": {
                     "type": "ID2"
@@ -111,6 +113,7 @@
         "ST": {
             "name": "Transaction Header",
             "required": true,
+            "row": 3,
             "elements": {
                 "ST01": {
                     "required_value": "834"

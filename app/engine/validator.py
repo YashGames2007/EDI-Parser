@@ -1,7 +1,7 @@
 import re
 
 
-def add_error(errors, code, row=None, column=None, rules=None, expanded_desc=""):
+def add_error(errors, code, rules, row=None, column=None, segment=None, expanded_desc=""):
 
     desc = rules["errors"].get(code, {}).get("description", "Unknown error") + f": {expanded_desc}"
 
@@ -9,7 +9,8 @@ def add_error(errors, code, row=None, column=None, rules=None, expanded_desc="")
         "code": code,
         "description": desc,
         "row": row,
-        "column": column
+        "column": column,
+        "segment": segment
     })
 
 
@@ -28,7 +29,7 @@ def validate(parsed, rules):
     for seg, rule in rules["segments"].items():
 
         if rule.get("required") and seg not in segment_ids:
-            add_error(errors, "SEG_MISSING", rules=rules, expanded_desc=f"{seg} segment must be present.!")
+            add_error(errors, "SEG_MISSING", row=rule.get("row"), segment=seg, rules=rules, expanded_desc=f"{seg} segment must be present.!")
 
     # ----------------------
     # Segment Validation
@@ -74,7 +75,7 @@ def validate(parsed, rules):
                 type_rule = rules["types"][element_rule["type"]]
 
                 if not re.match(type_rule["regex"], value):
-                    add_error(errors, "INVALID_FORMAT", row, column, rules, expanded_desc=f"Unexpected format for {element_key} element. Required format: {type_rule['description']}.")
+                    add_error(errors, "INVALID_FORMAT", rules, row, column, expanded_desc=f"Unexpected format for {element_key} element. Required format: {type_rule['description']}.")
 
             # Value set validation
             if "value_set" in element_rule:
@@ -84,12 +85,12 @@ def validate(parsed, rules):
                 )
 
                 if value not in allowed:
-                    add_error(errors, "INVALID_VALUE", row, column, rules, expanded_desc=f"Invalid value for {element_key} element. Allowed values: {', '.join(allowed)}.")
+                    add_error(errors, "INVALID_VALUE", rules, row, column, expanded_desc=f"Invalid value for {element_key} element. Allowed values: {', '.join(allowed)}.")
 
             # Required value validation
             if "required_value" in element_rule:
 
                 if value != element_rule["required_value"]:
-                    add_error(errors, "INVALID_VALUE", row, column, rules, expanded_desc=f"{element_key} element must have value '{element_rule['required_value']}'.")
+                    add_error(errors, "INVALID_VALUE", rules, row, column, expanded_desc=f"{element_key} element must have value '{element_rule['required_value']}'.")
 
     return errors
