@@ -15,7 +15,7 @@ def load_rules(transaction):
     rules["values"] = load_json(BASE / "values.json")
     rules["errors"] = load_json(BASE / "errors.json")
 
-    tx_dir = BASE / transaction
+    tx_dir = BASE / "834"
 
     rules["segments"] = load_json(tx_dir / "segments.json")["segments"]
     rules["loops"] = load_json(tx_dir / "loops.json")["loops"]
